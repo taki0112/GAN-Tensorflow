@@ -117,7 +117,7 @@ for epoch in range(total_epoch) :
           'G loss: {:.4}'.format(loss_val_G))
 
     # Create and save images periodically to see how learning is going
-    if epoch == 0 or (epoch + 1) % 10 == 0 :
+    if epoch == 0 or epoch % 10 == 0 :
         sample_size = 10
         noise = get_noise(sample_size, n_noise)
         samples = sess.run(G,
@@ -129,7 +129,7 @@ for epoch in range(total_epoch) :
             ax[i].set_axis_off()
             ax[i].imshow(np.reshape(samples[i], (28,28)))
 
-        plt.savefig('sa/mples/{}.png'.format(str(epoch).zfill(3)), bbox_inches='tight')
+        plt.savefig('samples/{}.png'.format(str(epoch).zfill(3)), bbox_inches='tight')
         plt.close(fig)
 
 print('Optimized!')
