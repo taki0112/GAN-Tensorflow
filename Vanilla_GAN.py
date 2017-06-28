@@ -70,6 +70,7 @@ And the maximum value as: tf.log (1 - D_gene) even when you insert a fake image.
 
 This makes the discriminator learn the discriminator neural network so that the image produced by the generator is judged to be fake.
 """
+
 loss_D = tf.reduce_mean(tf.log(D_real) + tf.log(1 - D_gene))
 
 """
@@ -79,6 +80,7 @@ It learns the generator neural network so that when the false image is inserted,
 In the paper, we find a generator that minimizes to a formula such as loss_D,
 This is the same as maximizing the D_gene value, so you can use: loss_G = tf.reduce_mean(tf.log(D_gene))
 """
+
 loss_G = tf.reduce_mean(tf.log(D_gene))
 
 # If you want to see another loss function, see the following link.
