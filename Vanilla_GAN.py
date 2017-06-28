@@ -72,6 +72,7 @@ This makes the discriminator learn the discriminator neural network so that the 
 """
 
 loss_D = tf.reduce_mean(tf.log(D_real) + tf.log(1 - D_gene))
+tf.summary.scalar('loss_D', -loss_D)
 
 """
 On the other hand, to maximize loss_G, we maximize the value of D_gene,
@@ -82,6 +83,7 @@ This is the same as maximizing the D_gene value, so you can use: loss_G = tf.red
 """
 
 loss_G = tf.reduce_mean(tf.log(D_gene))
+tf.summary.scalar('loss_G', -loss_G)
 
 # If you want to see another loss function, see the following link.
 # http://bamos.github.io/2016/08/09/deep-completion/
@@ -95,41 +97,46 @@ train_D = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(-loss_D, 
 train_G = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(-loss_G, var_list=vars_G)
 
 # Start training !
-sess = tf.Session()
-sess.run(tf.global_variables_initializer())
+with tf.Session() as sess :
+    sess.run(tf.global_variables_initializer())
 
-total_batch = int(mnist.train.num_examples/batch_size)
-loss_val_D, loss_val_G = 0, 0
+    total_batch = int(mnist.train.num_examples/batch_size)
+    loss_val_D, loss_val_G = 0, 0
 
-for epoch in range(total_epoch) :
-    for i in range(total_batch) :
-        batch_x, batch_y = mnist.train.next_batch(batch_size)
-        noise = get_noise(batch_size, n_noise)
+    merged = tf.summary.merge_all()
+    writer = tf.summary.FileWriter('./logs', sess.graph)
 
-        # It learns discriminator and generator neural network separately.
-        _, loss_val_D = sess.run([train_D, loss_D],
-                                 feed_dict={X : batch_x, Z : noise})
-        _, loss_val_G = sess.run([train_G, loss_G],
-                                 feed_dict={Z : noise})
+    for epoch in range(total_epoch) :
+        for i in range(total_batch) :
+            batch_x, batch_y = mnist.train.next_batch(batch_size)
+            noise = get_noise(batch_size, n_noise)
 
-    print('Epoch:', '%04d' % epoch,
-          'D loss: {:.4}'.format(loss_val_D),
-          'G loss: {:.4}'.format(loss_val_G))
+            # It learns discriminator and generator neural network separately.
+            _, loss_val_D = sess.run([train_D, loss_D],
+                                     feed_dict={X : batch_x, Z : noise})
+            _, loss_val_G = sess.run([train_G, loss_G],
+                                     feed_dict={Z : noise})
+        summary = sess.run(merged, feed_dict={X: batch_x, Z: noise})
+        writer.add_summary(summary, global_step=epoch)
 
-    # Create and save images periodically to see how learning is going
-    if epoch == 0 or epoch % 10 == 0 :
-        sample_size = 10
-        noise = get_noise(sample_size, n_noise)
-        samples = sess.run(G,
-                           feed_dict={Z : noise})
+        print('Epoch:', '%04d' % epoch,
+              'D loss: {:.4}'.format(-loss_val_D),
+              'G loss: {:.4}'.format(-loss_val_G))
 
-        fig, ax = plt.subplots(nrows=1, ncols=sample_size, figsize=(sample_size, 1))
+        # Create and save images periodically to see how learning is going
+        if epoch == 0 or epoch % 10 == 0 or epoch == total_epoch-1:
+            sample_size = 10
+            noise = get_noise(sample_size, n_noise)
+            samples = sess.run(G,
+                               feed_dict={Z : noise})
 
-        for i in range(sample_size) :
-            ax[i].set_axis_off()
-            ax[i].imshow(np.reshape(samples[i], (28,28)))
+            fig, ax = plt.subplots(nrows=1, ncols=sample_size, figsize=(sample_size, 1))
 
-        plt.savefig('samples/{}.png'.format(str(epoch).zfill(3)), bbox_inches='tight')
-        plt.close(fig)
+            for i in range(sample_size) :
+                ax[i].set_axis_off()
+                ax[i].imshow(np.reshape(samples[i], (28,28)))
 
-print('Optimized!')
+            plt.savefig('samples/{}.png'.format(str(epoch).zfill(3)), bbox_inches='tight')
+            plt.close(fig)
+
+    print('Optimized!')
