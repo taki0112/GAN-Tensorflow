@@ -31,14 +31,14 @@ def get_noise(batch_size, n_noise) :
     return np.random.normal(size=(batch_size, n_noise))
 ```
 
-```python
-loss_D = tf.reduce_mean(tf.log(D_real) + tf.log(1 - D_gene))
-loss_G = tf.reduce_mean(tf.log(D_gene))
-```
 
 ## Model
 ![model](./assests/graph.png)
 
+```python
+loss_D = tf.reduce_mean(tf.log(D_real) + tf.log(1 - D_gene))
+loss_G = tf.reduce_mean(tf.log(D_gene))
+```
 ## Training details (epoch < 100)
 ### loss_D
 ![loss_D_100](./assests/loss_D_100.JPG)
